@@ -41,6 +41,7 @@ aa_critique_fit <- function(fit) {
     # regression equation/formula, i.e., "what we tell the boss"
 
     coeffs <- coefficients(fit)
+    
     res$formula <- paste0(
         as.character(formula(fit)[2]), " = ",
         round(coeffs[1], 4), " + ",

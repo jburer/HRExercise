@@ -12,7 +12,7 @@ HR_Exercise_Training <- read_csv("HRExercise.csv",
             "Riverwalk", "Southern Soul", 
             "Stringers", "White Oak - Green", 
             "White Sands Cove", "Whole Enchilada")), 
-        CourseValue = col_factor(levels = c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15")),
+        CourseValue = col_factor(levels = c("0", "1", "2", "3")),
         Zone = col_factor(levels = c("1", "2", "3", "4", "5")),
         IsYoga = col_factor(levels = c("0", "1")), 
         IsFullPractice = col_factor(levels = c("0", "1")), 
@@ -61,6 +61,8 @@ HR_Exercise_Training <- read_csv("HRExercise.csv",
         IsLessThan72HoursSinceLastRunning = col_factor(levels = c("0", "1")),
         IsHawksRidge = col_factor(levels = c("0", "1")),
         IsRiverwalk = col_factor(levels = c("0", "1")),
+        IsWholeEnchilada = col_factor(levels = c("0", "1")),
+        IsWhiteOakGreen = col_factor(levels = c("0", "1")),
         IsStringers = col_factor(levels = c("0", "1")),
         IsZone1 = col_factor(levels = c("0", "1")),
         IsLessThan12HoursSinceLastZone1 = col_factor(levels = c("0", "1")),
@@ -106,12 +108,7 @@ HR_Exercise_Training <- read_csv("HRExercise.csv",
         ))
 View(HR_Exercise_Training)
 
-
-Alta Vista,Deer Hollow,Enterprise South,Four Pass Loop,Full Practice,Greenway,Hawk's Ridge,Montreat,Montreat Trails,Restorative,Riverwalk,Southern Soul,Stringers,White Oak - Green,White Sands Cove,Whole Enchilada
-
-
-```{r}
-crit$confint
+#crit$confint
 #crit1$confint
 #crit2$confint
 #crit3$confint
@@ -305,26 +302,24 @@ fit_some <- lm(Growth ~ TimeInMin + Temp + Humidity + DewPoint
 + IsBikingAtWhiteOakGreen + IsBikingAtWholeEnchilada + IsBikingAtStringers + IsBikingAtRiverwalk + IsBikingAtGreenway + IsOtherBiking
 + IsWalkingAtHawksRidge + IsWalkingAtFourPassLoop + IsWalkingAtRiverwalk + IsOtherWalking
 + IsRunningAtHawksRidge + IsRunningAtStringers + IsRunningAtRiverwalk + IsOtherRunning
-, data = HR_Exercise_Training)
+, data = HR_Exercise_Training, na.action=na.omit)
 
 fit_some <- lm(Growth ~ TimeInMin + Temp + Humidity + DewPoint 
 + BPM + MaxBPM
 + Calories + CaloriesPerMin + CaloriesPerFoot
++ IsLessThan12HoursSinceLastAnything + IsLessThan24HoursSinceLastAnything + IsLessThan36HoursSinceLastAnything +IsLessThan48HoursSinceLastAnything + IsLessThan60HoursSinceLastAnything + IsLessThan72HoursSinceLastAnything
 + IsLessThan12HoursSinceLastZone1 + IsLessThan24HoursSinceLastZone1 + IsLessThan36HoursSinceLastZone1 +IsLessThan48HoursSinceLastZone1 + IsLessThan60HoursSinceLastZone1 + IsLessThan72HoursSinceLastZone1
 + IsZone2 + IsLessThan12HoursSinceLastZone2 + IsLessThan24HoursSinceLastZone2 + IsLessThan36HoursSinceLastZone2 +IsLessThan48HoursSinceLastZone2 + IsLessThan60HoursSinceLastZone2
 + IsZone3 + IsLessThan24HoursSinceLastZone3 + IsLessThan36HoursSinceLastZone3 + IsLessThan48HoursSinceLastZone3 + IsLessThan72HoursSinceLastZone3 
 + IsZone4 + IsLessThan24HoursSinceLastZone4 + IsLessThan36HoursSinceLastZone4 + IsLessThan48HoursSinceLastZone4 + IsLessThan72HoursSinceLastZone4 
 + IsZone5
-+ IsLessThan12HoursSinceLastAnything + IsLessThan24HoursSinceLastAnything + IsLessThan36HoursSinceLastAnything +IsLessThan48HoursSinceLastAnything + IsLessThan60HoursSinceLastAnything + IsLessThan72HoursSinceLastAnything
-+ ExerciseValue
 + IsLessThan24HoursSinceLastYoga + IsLessThan36HoursSinceLastYoga + IsLessThan48HoursSinceLastYoga + IsLessThan60HoursSinceLastYoga
 + IsRunning + IsLessThan60HoursSinceLastRunning + IsLessThan72HoursSinceLastRunning
 + IsWalking + IsLessThan24HoursSinceLastWalking + IsLessThan36HoursSinceLastWalking + IsLessThan48HoursSinceLastWalking + IsLessThan60HoursSinceLastWalking + IsLessThan72HoursSinceLastWalking
 + IsBiking + IsLessThan24HoursSinceLastBiking + IsLessThan36HoursSinceLastBiking + IsLessThan48HoursSinceLastBiking + IsLessThan60HoursSinceLastBiking + IsLessThan72HoursSinceLastBiking
-+ CourseValue
 + IsFullPractice + IsSouthernSoul
 + IsHawksRidge + IsRiverwalk + IsStringers
 + IsBikingAtWhiteOakGreen + IsBikingAtWholeEnchilada + IsBikingAtStringers + IsBikingAtRiverwalk + IsBikingAtGreenway
 + IsWalkingAtHawksRidge + IsWalkingAtRiverwalk
-, data = HR_Exercise_Training)
+, data = HR_Exercise_Training, na.action=na.omit)
 

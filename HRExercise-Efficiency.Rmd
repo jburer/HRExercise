@@ -1,0 +1,336 @@
+---
+title: "HRExercise"
+output: html_document
+---
+
+## Preparation
+
+Ensure all relevant packages are installed.
+
+```{r}
+#install.packages(c("rmarkdown", "car", "ggplot2", "forecast", "dplyr")) 
+#install.packages("stats")
+```
+
+
+Load libraries and supporting functions.
+
+```{r}
+library(readr)
+library(dplyr)
+source("code_Linear_Regression_Review.R")
+source("code_Time_Series.R")
+source("HRExercise-Data.R")
+```
+
+
+----
+
+## Correlation Analysis
+
+Uses pre-built, loaded function `aa_cor()`
+
+```{r}
+aa_cor(HRExercise)
+```
+
+
+Scatter plot for highly correlated variables.
+
+```{r}
+qplot(Efficiency, BPM, data = HRExercise)
+qplot(Efficiency, CaloriesPerMin, data = HRExercise)
+qplot(Efficiency, Work, data = HRExercise)
+```
+
+
+The command `autoplot(...)` can be used to provide a quick plot of the
+time series.
+
+```{r}
+autoplot(efficiency)
+autoplot(efficiency_lag)
+autoplot(bpm)
+autoplot(caloriespermin)
+autoplot(calories)
+autoplot(timeinmin)
+autoplot(elevationchangeinfeetpermin)
+autoplot(elevationchangeinfeet)
+autoplot(distanceinfeetpermin)
+autoplot(distanceinfeet)
+autoplot(temp)
+autoplot(dewpoint)
+autoplot(exercise)
+autoplot(course)
+autoplot(islessthan24hourssincelastanything)
+autoplot(islessthan36hourssincelastanything)
+autoplot(islessthan48hourssincelastanything)
+```
+
+
+If the time series exhibits unstable variation (or unstable fluctuation)
+over time, you should log the time series. You should also log the time
+series if you suspect an exponential trend over time. 
+
+```{r}
+efficiency_log <- log(efficiency)
+autoplot(efficiency_log)
+
+BPM_log <- log(BPM)
+autoplot(BPM_log)
+
+CaloriesPerMin_log <- log(CaloriesPerMin)
+autoplot(CaloriesPerMin_log)
+```
+
+
+----
+
+## Decomposition
+
+A look at the decomposition, which breaks the time series
+down into a trend component, a seasonal component (as applicable),
+and a remainder component.
+
+```{r}
+efficiency_decomp <- mstl(efficiency)
+autoplot(efficiency_decomp)
+
+bpm_decomp <- mstl(bpm)
+autoplot(bpm_decomp)
+
+caloriespermin_decomp <- mstl(caloriespermin)
+autoplot(caloriespermin_decomp)
+
+calories_decomp <- mstl(calories)
+autoplot(calories_decomp)
+
+timeinmin_decomp <- mstl(timeinmin)
+autoplot(timeinmin_decomp)
+
+distanceinfeetpermin_decomp <- mstl(distanceinfeetpermin)
+autoplot(distanceinfeetpermin_decomp)
+
+distanceinfeet_decomp <- mstl(distanceinfeet)
+autoplot(distanceinfeet_decomp)
+
+elevationchangeinfeetpermin_decomp <- mstl(elevationchangeinfeetpermin)
+autoplot(elevationchangeinfeetpermin_decomp)
+
+elevationchangeinfeet_decomp <- mstl(elevationchangeinfeet)
+autoplot(elevationchangeinfeet_decomp)
+
+temp_decomp <- mstl(temp)
+autoplot(temp_decomp)
+
+dewpoint_decomp <- mstl(dewpoint)
+autoplot(dewpoint_decomp)
+
+exercise_decomp <- mstl(exercise)
+autoplot(exercise_decomp)
+
+course_decomp <- mstl(course)
+autoplot(course_decomp)
+
+islessthan24hourssincelastanything_decomp <- mstl(islessthan24hourssincelastanything)
+autoplot(islessthan24hourssincelastanything_decomp)
+
+islessthan36hourssincelastanything_decomp <- mstl(islessthan36hourssincelastanything)
+autoplot(islessthan36hourssincelastanything_decomp)
+
+islessthan48hourssincelastanything_decomp <- mstl(islessthan48hourssincelastanything)
+autoplot(islessthan48hourssincelastanything_decomp)
+```
+
+
+----
+
+## Autocorrelation
+
+Any autocorrelation issues can be viewed using the `Acf()` function. 
+
+```{r}
+Acf(efficiency)
+Acf(bpm)
+Acf(caloriespermin)
+Acf(calories)
+Acf(timeinmin)
+Acf(distanceinfeetpermin)
+Acf(distanceinfeet)
+Acf(elevationchangeinfeetpermin)
+Acf(elevationchangeinfeet)
+Acf(temp)
+Acf(dewpoint)
+Acf(exercise)
+Acf(course)
+Acf(islessthan24hourssincelastanything)
+Acf(islessthan36hourssincelastanything)
+Acf(islessthan48hourssincelastanything)
+
+```
+
+
+----
+
+## Linear Regression 
+
+First, plot a scatter plot of any two variables along with their trendline (i.e., regression
+line) and confidence interval for the regression.
+
+```{r}
+qplot(Efficiency, BPM, data = HRExercise) + stat_smooth(method = "lm")
+qplot(Efficiency, CaloriesPerMin, data = HRExercise) + stat_smooth(method = "lm")
+```
+
+
+Now, run linear regression, adding multiple variables, storing in fit.
+
+# No Time Series
+
+```{r}
+fit <- lm(Efficiency ~ CaloriesPerMin 
++ TimeInMin 
++ BPM
+#+ DistanceInFeetPerMin
++ Temp + DewPoint 
+, data = HRExercise, na.action=na.omit)
+```
+
+
+Run pre-built, loaded function `aa_critique_fit()` to provide output that needed to
+critique the model.
+
+```{r}
+crit <- aa_critique_fit(fit)
+```
+
+
+The object `crit$formula` shows the fitted regression formula.
+
+```{r}
+print(crit$formula)
+```
+
+
+The object `crit$summary` contains a full summary of the regression
+model, including the standard error, adjusted $R^2$, and p-value associated
+with the independent variables.
+
+```{r}
+crit$summary
+```
+
+View 95% confidence intervals on the intercept and coefficients.
+
+```{r}
+crit$confint
+```
+
+The adjusted $R^2$, standard error, and average $Y$ values.
+
+```{r}
+crit$R2
+crit$Se
+crit$mean_Y
+```
+
+The plot of residuals versus the fitted values is contained in
+`crit$residual_plot`, and the residual histogram is contained in
+`crit$residual_histogram`.
+
+```{r}
+crit$residual_plot
+crit$residual_histogram
+```
+
+A look at how large the mistakes are:
+
+```{r}
+crit$Se / crit$mean_Y
+```
+
+
+Check the VIFs to verify that multicollinearity is not present and
+possibly causing problems.
+
+```{r}
+crit$vif
+```
+
+
+# Time Series
+
+```{r}
+#fit <- tslm(efficiency ~ efficiency_lag)
+fit <- tslm(efficiency ~ 
++ timeinmin + timeinmin_lag
++ elevationchangeinfeet + elevationchangeinfeet_lag
++ elevationchangeinfeetpermin + elevationchangeinfeetpermin_lag
++ distanceinfeet + distanceinfeet_lag
++ distanceinfeetpermin + distanceinfeetpermin_lag
++ temp + dewpoint #+ humidity
+#+ exercise
+#+ course
++ islessthan12hourssincelastanything #+ islessthan24hourssincelastanything + islessthan36hourssincelastanything 
++ time
+)
+summary(fit)
+```
+
+
+Fitted values plotted along with the data itself:
+
+```{r}
+aa_plot_fitted(fit)
+```
+
+
+Calculate the total accuracy of the regression using several
+measures.
+
+```{r}
+accuracy(fit)
+```
+
+
+Check the normality and autocorrelation of the residual
+errors.
+
+```{r}
+checkresiduals(fit)
+```
+
+
+
+View the forecasts with 80% and 95% confidence bands.
+
+```{r}
+forecast(fit)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

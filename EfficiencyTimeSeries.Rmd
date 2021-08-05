@@ -1,0 +1,242 @@
+---
+title: "Time Series: Example 1"
+author: "Samuel Burer (samuel-burer@uiowa.edu)"
+date: "Updated: `r format(Sys.time(), '%B %e, %Y')`"
+output: html_notebook
+---
+
+----
+
+# Preparation
+
+If you are following along in RStudio, to prepare for this example,
+choose the RStudio menu item *Session > Restart and Clear Output*.
+Alternatively, you can choose *Run > Restart R and Clear Output* in the
+notebook code window. You will also need to install the `ggplot2` and
+`forecast` packages and to source `code_Time_Series.R`.
+
+```{r}
+# install.packages(c("ggplot2", "forecast")) # Paste into console to install
+source("code_Time_Series.R")
+```
+
+# Data and Getting Started
+
+The file `data_Time_Series.Rdata` contains several time series that
+will be the basis of our example. In particular, we will work only with
+univariate time series, i.e., time series that contain just one column
+of data. Let's load the data:
+
+```{r}
+load("data_Time_Series.Rdata")
+library(readr)
+HRExercise <- read_csv("HRExercise.csv", 
+    col_types = cols(Date = col_date(format = "%m/%d/%y"), 
+        Time = col_time(format = "%T"), DateTime = col_datetime(format = "%m/%d/%y %T"), 
+        Exercise = col_factor(levels = c("Yoga", "Walking", "Running", "Biking", "Trail Walking", "Trail Running", "Mountain Biking")), 
+        ExerciseValue = col_factor(levels = c("0", "1", "2", "3", "4", "5", "6")), 
+        Course = col_factor(levels = c("Alta Vista", 
+            "Deer Hollow", "Enterprise South", 
+            "Four Pass Loop", "Full Practice", 
+            "Greenway", "Hawk's Ridge", "Montreat", 
+            "Montreat Trails", "Restorative", 
+            "Riverwalk", "Southern Soul", 
+            "Stringers", "White Oak - Green", 
+            "White Sands Cove", "Whole Enchilada")), 
+        CourseValue = col_factor(levels = c("0", "1", "2", "3")),
+        Zone = col_factor(levels = c("1", "2", "3", "4", "5")),
+        IsYoga = col_factor(levels = c("0", "1")), 
+        IsFullPractice = col_factor(levels = c("0", "1")), 
+        IsSouthernSoul = col_factor(levels = c("0", "1")), 
+        IsOtherYoga = col_factor(levels = c("0", "1")), 
+        IsLessThan12HoursSinceLastYoga = col_factor(levels = c("0", "1")), 
+        IsLessThan24HoursSinceLastYoga = col_factor(levels = c("0", "1")), 
+        IsLessThan36HoursSinceLastYoga = col_factor(levels = c("0", "1")), 
+        IsLessThan48HoursSinceLastYoga = col_factor(levels = c("0", "1")), 
+        IsLessThan60HoursSinceLastYoga = col_factor(levels = c("0", "1")), 
+        IsLessThan72HoursSinceLastYoga = col_factor(levels = c("0", "1")), 
+        IsBiking = col_factor(levels = c("0", "1")), 
+        IsBikingAtWhiteOakGreen = col_factor(levels = c("0", "1")), 
+        IsBikingAtWholeEnchilada = col_factor(levels = c("0", "1")), 
+        IsBikingAtStringers = col_factor(levels = c("0", "1")), 
+        IsBikingAtRiverwalk = col_factor(levels = c("0", "1")),
+        IsBikingAtGreenway = col_factor(levels = c("0", "1")),
+        IsOtherBiking = col_factor(levels = c("0", "1")),
+        IsLessThan12HoursSinceLastBiking = col_factor(levels = c("0", "1")),
+        IsLessThan24HoursSinceLastBiking = col_factor(levels = c("0", "1")),
+        IsLessThan36HoursSinceLastBiking = col_factor(levels = c("0", "1")),
+        IsLessThan48HoursSinceLastBiking = col_factor(levels = c("0", "1")),
+        IsLessThan60HoursSinceLastBiking = col_factor(levels = c("0", "1")),
+        IsLessThan72HoursSinceLastBiking = col_factor(levels = c("0", "1")),
+        IsWalking = col_factor(levels = c("0", "1")),
+        IsWalkingAtHawksRidge = col_factor(levels = c("0", "1")),
+        IsWalkingAtFourPassLoop = col_factor(levels = c("0", "1")),
+        IsWalkingAtRiverwalk = col_factor(levels = c("0", "1")),
+        IsOtherWalking = col_factor(levels = c("0", "1")),
+        IsLessThan12HoursSinceLastWalking = col_factor(levels = c("0", "1")),
+        IsLessThan24HoursSinceLastWalking = col_factor(levels = c("0", "1")),
+        IsLessThan36HoursSinceLastWalking = col_factor(levels = c("0", "1")),
+        IsLessThan48HoursSinceLastWalking = col_factor(levels = c("0", "1")),
+        IsLessThan60HoursSinceLastWalking = col_factor(levels = c("0", "1")),
+        IsLessThan72HoursSinceLastWalking = col_factor(levels = c("0", "1")),
+        IsRunning = col_factor(levels = c("0", "1")),
+        IsRunningAtHawksRidge = col_factor(levels = c("0", "1")),
+        IsRunningAtStringers = col_factor(levels = c("0", "1")),
+        IsRunningAtRiverwalk = col_factor(levels = c("0", "1")),
+        IsOtherRunning = col_factor(levels = c("0", "1")),
+        IsLessThan12HoursSinceLastRunning = col_factor(levels = c("0", "1")),
+        IsLessThan24HoursSinceLastRunning = col_factor(levels = c("0", "1")),
+        IsLessThan36HoursSinceLastRunning = col_factor(levels = c("0", "1")),
+        IsLessThan48HoursSinceLastRunning = col_factor(levels = c("0", "1")),
+        IsLessThan60HoursSinceLastRunning = col_factor(levels = c("0", "1")),
+        IsLessThan72HoursSinceLastRunning = col_factor(levels = c("0", "1")),
+        IsHawksRidge = col_factor(levels = c("0", "1")),
+        IsRiverwalk = col_factor(levels = c("0", "1")),
+        IsWholeEnchilada = col_factor(levels = c("0", "1")),
+        IsWhiteOakGreen = col_factor(levels = c("0", "1")),
+        IsStringers = col_factor(levels = c("0", "1")),
+        IsZone1 = col_factor(levels = c("0", "1")),
+        IsLessThan12HoursSinceLastZone1 = col_factor(levels = c("0", "1")),
+        IsLessThan24HoursSinceLastZone1 = col_factor(levels = c("0", "1")),
+        IsLessThan36HoursSinceLastZone1 = col_factor(levels = c("0", "1")),
+        IsLessThan48HoursSinceLastZone1 = col_factor(levels = c("0", "1")),
+        IsLessThan60HoursSinceLastZone1 = col_factor(levels = c("0", "1")),
+        IsLessThan72HoursSinceLastZone1 = col_factor(levels = c("0", "1")),
+        IsZone2 = col_factor(levels = c("0", "1")),
+        IsLessThan12HoursSinceLastZone2 = col_factor(levels = c("0", "1")),
+        IsLessThan24HoursSinceLastZone2 = col_factor(levels = c("0", "1")),
+        IsLessThan36HoursSinceLastZone2 = col_factor(levels = c("0", "1")),
+        IsLessThan48HoursSinceLastZone2 = col_factor(levels = c("0", "1")),
+        IsLessThan60HoursSinceLastZone2 = col_factor(levels = c("0", "1")),
+        IsLessThan72HoursSinceLastZone2 = col_factor(levels = c("0", "1")),
+        IsZone3 = col_factor(levels = c("0", "1")),
+        IsLessThan12HoursSinceLastZone3 = col_factor(levels = c("0", "1")),
+        IsLessThan24HoursSinceLastZone3 = col_factor(levels = c("0", "1")),
+        IsLessThan36HoursSinceLastZone3 = col_factor(levels = c("0", "1")),
+        IsLessThan48HoursSinceLastZone3 = col_factor(levels = c("0", "1")),
+        IsLessThan60HoursSinceLastZone3 = col_factor(levels = c("0", "1")),
+        IsLessThan72HoursSinceLastZone3 = col_factor(levels = c("0", "1")),
+        IsZone4 = col_factor(levels = c("0", "1")),
+        IsLessThan12HoursSinceLastZone4 = col_factor(levels = c("0", "1")),
+        IsLessThan24HoursSinceLastZone4 = col_factor(levels = c("0", "1")),
+        IsLessThan36HoursSinceLastZone4 = col_factor(levels = c("0", "1")),
+        IsLessThan48HoursSinceLastZone4 = col_factor(levels = c("0", "1")),
+        IsLessThan60HoursSinceLastZone4 = col_factor(levels = c("0", "1")),
+        IsLessThan72HoursSinceLastZone4 = col_factor(levels = c("0", "1")),
+        IsZone5 = col_factor(levels = c("0", "1")),
+        IsLessThan12HoursSinceLastZone5 = col_factor(levels = c("0", "1")),
+        IsLessThan24HoursSinceLastZone5 = col_factor(levels = c("0", "1")),
+        IsLessThan36HoursSinceLastZone5 = col_factor(levels = c("0", "1")),
+        IsLessThan48HoursSinceLastZone5 = col_factor(levels = c("0", "1")),
+        IsLessThan60HoursSinceLastZone5 = col_factor(levels = c("0", "1")),
+        IsLessThan72HoursSinceLastZone5 = col_factor(levels = c("0", "1")),
+        IsLessThan12HoursSinceLastAnything = col_factor(levels = c("0", "1")),
+        IsLessThan24HoursSinceLastAnything = col_factor(levels = c("0", "1")),
+        IsLessThan36HoursSinceLastAnything = col_factor(levels = c("0", "1")),
+        IsLessThan48HoursSinceLastAnything = col_factor(levels = c("0", "1")),
+        IsLessThan60HoursSinceLastAnything = col_factor(levels = c("0", "1")),
+        IsLessThan72HoursSinceLastAnything = col_factor(levels = c("0", "1"))
+        ))
+```
+
+The data sets are as follows:
+
+- `cpi` = annual Consumer Price Index since 1947, which is indexed to
+  the value 1.0
+- `elec` = monthly net electricity generation in the U.S. (in kWh)
+- `google` = daily closing price (in $) of Google stock (start date =
+  February 25, 2013)
+- `lettuce` = monthly Producer Price Index for lettuce since 1947; the
+  average of 1982 is indexed to 100.0
+- `qc` = quality control data; 5 measurements per day, for 25
+  consecutive days; measurements are taken at 6:00, 10:00, 14:00, 18:00,
+  and 22:00
+- `rain` = annual rainfall (in inches) in Philadelphia
+- `soda` = monthly soda sales (in thousands of cases) for a soda
+  distributor
+- `ui` = total Fall plus Spring semester enrollment at the University
+  of Iowa
+
+In the code chunk below, you can uncomment whichever series you would
+like to work with in this example. Then the time series will be
+referenced in the object called `myts` throughout this example.
+
+```{r}
+# myts <- cpi
+# myts <- elec
+myts <- google
+# myts <- lettuce
+# myts <- qc
+# myts <- rain
+#myts <- soda
+# myts <- ui
+
+#efficiency <- data.frame(HRExercise$Efficiency)
+#efficiency <- ts(data = efficiency, start = c(as.Date(HRExercise$DateTime[1])), end=c(as.Date(HRExercise$DateTime[113])), frequency = 1)
+
+BPM <- data.frame(HRExercise$BPM)
+BPM <- ts(data = BPM, start = c(as.Date(HRExercise$DateTime[1])), end=c(as.Date(HRExercise$DateTime[113])), frequency = 1)
+
+CaloriesPerMin <- data.frame(HRExercise$CaloriesPerMin)
+CaloriesPerMin <- ts(data = CaloriesPerMin, start = c(as.Date(HRExercise$DateTime[1])), end=c(as.Date(HRExercise$DateTime[113])), frequency = 1)
+
+#myts <- CaloriesPerMin
+```
+
+Let's first look at the raw data:
+
+```{r}
+myts
+```
+
+The command `autoplot(...)` can be used to provide a quick plot of the
+time series.
+
+```{r}
+autoplot(myts)
+#autoplot(efficiency)
+```
+
+If the time series exhibits unstable variation (or unstable fluctuation)
+over time, you should log the time series. You should also log the time
+series if you suspect an exponential trend over time. If so, you can
+uncomment the following two lines to resave `myts` in logged form and
+print a new plot.
+
+```{r}
+myts <- log(myts)
+autoplot(myts)
+
+#efficiency <- log(efficiency)
+#autoplot(efficiency)
+```
+
+If you do decide to log your time series, then keep this in mind for the
+rest of the example. Any analysis will be in the log, and you'll need to
+do exp to get the analysis back in the original data.
+
+# Exploration
+
+Before doing any sophisticated analysis of a time series, it is
+important to get a basic feel for the data. One of the best ways is
+to look at the decomposition of `myts`, which breaks the time series
+down into a trend component, a seasonal component (as applicable),
+and a remainder component. Pay attention to the $y$ scales in the
+decomposition plot!
+
+```{r}
+decomp <- mstl(myts)
+autoplot(decomp)
+
+#decomp_efficiency <- mstl(efficiency)
+#autoplot(decomp_efficiency)
+```
+
+It's also helpful to know if the series has any autocorrelation issues,
+which can be viewed using the `Acf(...)` function. Note the capital
+letter "A" but lowercase letters "cf". Autocorrelation can also reveal
+any seasonality patterns---which you may or may not already be aware of.
+
+```{r}
+Acf(myts)
+```

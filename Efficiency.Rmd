@@ -1,0 +1,457 @@
+---
+title: "Linear Regression Review: Example 1"
+author: "Samuel Burer (samuel-burer@uiowa.edu)"
+date: "Updated: `r format(Sys.time(), '%B %e, %Y')`"
+output: html_notebook
+---
+
+----
+
+## Preparation
+
+If you are following along in RStudio, to prepare for this example, choose the
+RStudio menu item *Session > Restart and Clear Output*. Alternatively, you can
+choose *Run > Restart R and Clear Output* in the notebook code window.  You
+will also need to install the packages `car` and `ggplot2` and to source
+`code_Linear_Regression_Review.R`.
+
+```{r}
+# install.packages(c("car", "ggplot2")) # Uncomment and run if necessary
+```
+
+
+```{r}
+source("code_Linear_Regression_Review.R")
+```
+
+----
+
+## DataView 
+
+In this example, we will develop a linear-regression model for the sale prices
+of single-family homes in the Des Moines area. The data was collected from the
+[Polk County Assessor's
+website](http://web.assess.co.polk.ia.us/cgi-bin/web/tt/infoqry.cgi?tt=home/index)
+and is stored in a data frame called `homes` in the file
+`data_Linear_Regression_Review.Rdata`.
+
+```{r}
+load("data_Linear_Regression_Review.Rdata")
+library(readr)
+HR_Exercise_Training <- read_csv("HRExercise.csv", 
+    col_types = cols(Date = col_date(format = "%m/%d/%y"), 
+        Time = col_time(format = "%T"), DateTime = col_datetime(format = "%m/%d/%y %T"), 
+        Exercise = col_factor(levels = c("Yoga", "Walking", "Running", "Biking", "Trail Walking", "Trail Running", "Mountain Biking")), 
+        ExerciseValue = col_factor(levels = c("0", "1", "2", "3", "4", "5", "6")), 
+        Course = col_factor(levels = c("Alta Vista", 
+            "Deer Hollow", "Enterprise South", 
+            "Four Pass Loop", "Full Practice", 
+            "Greenway", "Hawk's Ridge", "Montreat", 
+            "Montreat Trails", "Restorative", 
+            "Riverwalk", "Southern Soul", 
+            "Stringers", "White Oak - Green", 
+            "White Sands Cove", "Whole Enchilada")), 
+        CourseValue = col_factor(levels = c("0", "1", "2", "3")),
+        Zone = col_factor(levels = c("1", "2", "3", "4", "5")),
+        IsYoga = col_factor(levels = c("0", "1")), 
+        IsFullPractice = col_factor(levels = c("0", "1")), 
+        IsSouthernSoul = col_factor(levels = c("0", "1")), 
+        IsOtherYoga = col_factor(levels = c("0", "1")), 
+        IsLessThan12HoursSinceLastYoga = col_factor(levels = c("0", "1")), 
+        IsLessThan24HoursSinceLastYoga = col_factor(levels = c("0", "1")), 
+        IsLessThan36HoursSinceLastYoga = col_factor(levels = c("0", "1")), 
+        IsLessThan48HoursSinceLastYoga = col_factor(levels = c("0", "1")), 
+        IsLessThan60HoursSinceLastYoga = col_factor(levels = c("0", "1")), 
+        IsLessThan72HoursSinceLastYoga = col_factor(levels = c("0", "1")), 
+        IsBiking = col_factor(levels = c("0", "1")), 
+        IsBikingAtWhiteOakGreen = col_factor(levels = c("0", "1")), 
+        IsBikingAtWholeEnchilada = col_factor(levels = c("0", "1")), 
+        IsBikingAtStringers = col_factor(levels = c("0", "1")), 
+        IsBikingAtRiverwalk = col_factor(levels = c("0", "1")),
+        IsBikingAtGreenway = col_factor(levels = c("0", "1")),
+        IsOtherBiking = col_factor(levels = c("0", "1")),
+        IsLessThan12HoursSinceLastBiking = col_factor(levels = c("0", "1")),
+        IsLessThan24HoursSinceLastBiking = col_factor(levels = c("0", "1")),
+        IsLessThan36HoursSinceLastBiking = col_factor(levels = c("0", "1")),
+        IsLessThan48HoursSinceLastBiking = col_factor(levels = c("0", "1")),
+        IsLessThan60HoursSinceLastBiking = col_factor(levels = c("0", "1")),
+        IsLessThan72HoursSinceLastBiking = col_factor(levels = c("0", "1")),
+        IsWalking = col_factor(levels = c("0", "1")),
+        IsWalkingAtHawksRidge = col_factor(levels = c("0", "1")),
+        IsWalkingAtFourPassLoop = col_factor(levels = c("0", "1")),
+        IsWalkingAtRiverwalk = col_factor(levels = c("0", "1")),
+        IsOtherWalking = col_factor(levels = c("0", "1")),
+        IsLessThan12HoursSinceLastWalking = col_factor(levels = c("0", "1")),
+        IsLessThan24HoursSinceLastWalking = col_factor(levels = c("0", "1")),
+        IsLessThan36HoursSinceLastWalking = col_factor(levels = c("0", "1")),
+        IsLessThan48HoursSinceLastWalking = col_factor(levels = c("0", "1")),
+        IsLessThan60HoursSinceLastWalking = col_factor(levels = c("0", "1")),
+        IsLessThan72HoursSinceLastWalking = col_factor(levels = c("0", "1")),
+        IsRunning = col_factor(levels = c("0", "1")),
+        IsRunningAtHawksRidge = col_factor(levels = c("0", "1")),
+        IsRunningAtStringers = col_factor(levels = c("0", "1")),
+        IsRunningAtRiverwalk = col_factor(levels = c("0", "1")),
+        IsOtherRunning = col_factor(levels = c("0", "1")),
+        IsLessThan12HoursSinceLastRunning = col_factor(levels = c("0", "1")),
+        IsLessThan24HoursSinceLastRunning = col_factor(levels = c("0", "1")),
+        IsLessThan36HoursSinceLastRunning = col_factor(levels = c("0", "1")),
+        IsLessThan48HoursSinceLastRunning = col_factor(levels = c("0", "1")),
+        IsLessThan60HoursSinceLastRunning = col_factor(levels = c("0", "1")),
+        IsLessThan72HoursSinceLastRunning = col_factor(levels = c("0", "1")),
+        IsHawksRidge = col_factor(levels = c("0", "1")),
+        IsRiverwalk = col_factor(levels = c("0", "1")),
+        IsStringers = col_factor(levels = c("0", "1")),
+        IsWholeEnchilada = col_factor(levels = c("0", "1")),
+        IsWhiteOakGreen = col_factor(levels = c("0", "1")),
+        IsZone1 = col_factor(levels = c("0", "1")),
+        IsLessThan12HoursSinceLastZone1 = col_factor(levels = c("0", "1")),
+        IsLessThan24HoursSinceLastZone1 = col_factor(levels = c("0", "1")),
+        IsLessThan36HoursSinceLastZone1 = col_factor(levels = c("0", "1")),
+        IsLessThan48HoursSinceLastZone1 = col_factor(levels = c("0", "1")),
+        IsLessThan60HoursSinceLastZone1 = col_factor(levels = c("0", "1")),
+        IsLessThan72HoursSinceLastZone1 = col_factor(levels = c("0", "1")),
+        IsZone2 = col_factor(levels = c("0", "1")),
+        IsLessThan12HoursSinceLastZone2 = col_factor(levels = c("0", "1")),
+        IsLessThan24HoursSinceLastZone2 = col_factor(levels = c("0", "1")),
+        IsLessThan36HoursSinceLastZone2 = col_factor(levels = c("0", "1")),
+        IsLessThan48HoursSinceLastZone2 = col_factor(levels = c("0", "1")),
+        IsLessThan60HoursSinceLastZone2 = col_factor(levels = c("0", "1")),
+        IsLessThan72HoursSinceLastZone2 = col_factor(levels = c("0", "1")),
+        IsZone3 = col_factor(levels = c("0", "1")),
+        IsLessThan12HoursSinceLastZone3 = col_factor(levels = c("0", "1")),
+        IsLessThan24HoursSinceLastZone3 = col_factor(levels = c("0", "1")),
+        IsLessThan36HoursSinceLastZone3 = col_factor(levels = c("0", "1")),
+        IsLessThan48HoursSinceLastZone3 = col_factor(levels = c("0", "1")),
+        IsLessThan60HoursSinceLastZone3 = col_factor(levels = c("0", "1")),
+        IsLessThan72HoursSinceLastZone3 = col_factor(levels = c("0", "1")),
+        IsZone4 = col_factor(levels = c("0", "1")),
+        IsLessThan12HoursSinceLastZone4 = col_factor(levels = c("0", "1")),
+        IsLessThan24HoursSinceLastZone4 = col_factor(levels = c("0", "1")),
+        IsLessThan36HoursSinceLastZone4 = col_factor(levels = c("0", "1")),
+        IsLessThan48HoursSinceLastZone4 = col_factor(levels = c("0", "1")),
+        IsLessThan60HoursSinceLastZone4 = col_factor(levels = c("0", "1")),
+        IsLessThan72HoursSinceLastZone4 = col_factor(levels = c("0", "1")),
+        IsZone5 = col_factor(levels = c("0", "1")),
+        IsLessThan12HoursSinceLastZone5 = col_factor(levels = c("0", "1")),
+        IsLessThan24HoursSinceLastZone5 = col_factor(levels = c("0", "1")),
+        IsLessThan36HoursSinceLastZone5 = col_factor(levels = c("0", "1")),
+        IsLessThan48HoursSinceLastZone5 = col_factor(levels = c("0", "1")),
+        IsLessThan60HoursSinceLastZone5 = col_factor(levels = c("0", "1")),
+        IsLessThan72HoursSinceLastZone5 = col_factor(levels = c("0", "1")),
+        IsLessThan12HoursSinceLastAnything = col_factor(levels = c("0", "1")),
+        IsLessThan24HoursSinceLastAnything = col_factor(levels = c("0", "1")),
+        IsLessThan36HoursSinceLastAnything = col_factor(levels = c("0", "1")),
+        IsLessThan48HoursSinceLastAnything = col_factor(levels = c("0", "1")),
+        IsLessThan60HoursSinceLastAnything = col_factor(levels = c("0", "1")),
+        IsLessThan72HoursSinceLastAnything = col_factor(levels = c("0", "1"))
+        ))
+```
+
+Let's view the data be executing the code block below. Alternatively, you can
+double click `homes` in the *Environment* tab or issue the command
+`View(homes)` from the console.
+
+```{r}
+#homes
+HR_Exercise_Training
+```
+
+The following is a brief description of the columns:
+
+- `sale_price` = price (in $) the home was sold for
+- `above` = above ground square footage
+- `basement` = basement square footage
+- `walkout` = 0-1 variable indicating presence of walkout basement (base case = 0)
+- `baths` = number of full baths
+- `toilets` = number of half baths
+- `beds` = number of bedrooms
+- `condition` = condition of home, either Normal (base case), Below Normal, or Above Normal
+- `age` = age of home (in years)
+
+----
+
+## Correlation Analysis
+
+Before running a regression, it is often helpful to view a correlation matrix
+for the variables in the data. To do this, we use the function `aa_cor(...)`
+from the file `code_Linear_Regression_Review.R`, which has been loaded above.
+Note that `aa_cor(...)` only returns pairwise correlations between non-factor
+columns.
+
+
+```{r}
+#aa_cor(homes)
+aa_cor(HR_Exercise_Training)
+```
+
+In this case, `above` has a very strong positive correlation with `sale_price`.
+These two variables will be the basis of our first regression. Here is a
+scatter plot of these variables.
+
+```{r}
+qplot(above, sale_price, data = homes)
+qplot(DistanceInFeetPerMin, BPM, data = HR_Exercise_Training)
+qplot(ElevationChangeInFeetPerMin, BPM, data = HR_Exercise_Training)
+qplot(CaloriesPerMin, BPM, data = HR_Exercise_Training)
+qplot(Temp, BPM, data = HR_Exercise_Training)
+qplot(Humidity, BPM, data = HR_Exercise_Training)
+qplot(DewPoint, BPM, data = HR_Exercise_Training)
+qplot(BPM, Growth, data = HR_Exercise_Training)
+```
+
+----
+
+## Simple Linear Regression
+
+We are now ready to perform our first simple linear regression of `sale_price`
+on `above`. This can be visualized with the following code, which plots a
+scatter plot of the two variables along with their trendline (i.e., regression
+line) and confidence interval for the regression.
+
+```{r}
+#qplot(above, sale_price, data = homes) + stat_smooth(method = "lm")
+qplot(DistanceInFeetPerMin, BPM, data = HR_Exercise_Training) + stat_smooth(method = "lm")
+qplot(ElevationChangeInFeetPerMin, BPM, data = HR_Exercise_Training) + stat_smooth(method = "lm")
+qplot(CaloriesPerMin, BPM, data = HR_Exercise_Training) + stat_smooth(method = "lm")
+qplot(Temp, BPM, data = HR_Exercise_Training) + stat_smooth(method = "lm")
+qplot(Humidity, BPM, data = HR_Exercise_Training) + stat_smooth(method = "lm")
+qplot(DewPoint, BPM, data = HR_Exercise_Training) + stat_smooth(method = "lm")
+qplot(BPM, Growth, data = HR_Exercise_Training) + stat_smooth(method = "lm")
+```
+
+The `lm` in the code just above refers to the R function for running linear
+regressions. We can call `lm(...)` directly, which is in fact necessary when we
+want all the regression details. We save the results in an object which we call
+`fit`. The code `sale_price ~ above` is called the regression "formula" and
+means that `sale_price` is dependent and `above` is independent.
+
+```{r}
+fit <- lm(sale_price ~ above, data = homes)
+fit1 <- lm(Growth ~ Exercise, data = HR_Exercise_Training)
+fit2 <- lm(Growth ~ ExerciseValue, data = HR_Exercise_Training)
+fit2 <- lm(Growth ~ TimeInMin, data = HR_Exercise_Training)
+fit3 <- lm(Growth ~ Course, data = HR_Exercise_Training)
+fit4 <- lm(Growth ~ CourseValue, data = HR_Exercise_Training)
+fit4 <- lm(Growth ~ BPM, data = HR_Exercise_Training)
+fit5 <- lm(Growth ~ MaxBPM, data = HR_Exercise_Training)
+fit6 <- lm(Growth ~ Calories, data = HR_Exercise_Training)
+#fit7 <- lm(Growth ~ Zone, data = HR_Exercise_Training)
+#fit8 <- lm(Growth ~ Miles, data = HR_Exercise_Training)
+#fit9 <- lm(Growth ~ MilesPerHour, data = HR_Exercise_Training)
+fit10 <- lm(Growth ~ Temp, data = HR_Exercise_Training)
+fit11 <- lm(Growth ~ Humidity, data = HR_Exercise_Training)
+fit12 <- lm(Growth ~ DewPoint, data = HR_Exercise_Training)
+#fit13 <- lm(Growth ~ ElevationChangeInFeet, data = HR_Exercise_Training)
+#fit14 <- lm(Growth ~ ElevationChangeInFeetPerFoot, data = HR_Exercise_Training)
+#fit15 <- lm(Growth ~ ElevationChangeInFeetPerMin, data = HR_Exercise_Training)
+fit16 <- lm(Growth ~ CaloriesPerMin, data = HR_Exercise_Training)
+fit17 <- lm(Growth ~ CaloriesPerFoot, data = HR_Exercise_Training)
+#fit18 <- lm(Growth ~ IsYoga, data = HR_Exercise_Training)
+#fit19 <- lm(Growth ~ IsRunning, data = HR_Exercise_Training)
+#fit20 <- lm(Growth ~ IsWalking, data = HR_Exercise_Training)
+#fit21 <- lm(Growth ~ IsBiking, data = HR_Exercise_Training)
+```
+
+Once we have the regression model in `fit`, it is important to critique the
+model to see if it's a good model. We run the function `aa_critique_fit(...)`,
+which comes from `code_Linear_Regression_Review.R`, on `fit` and save its
+results in an object that we call `crit`.
+
+```{r}
+crit <- aa_critique_fit(fit)
+#crit1 <- aa_critique_fit(fit1)
+```
+
+Inside `crit` are several objects that will help us understand and critique the
+fit. First, the object `crit$formula` shows the fitted regression formula.
+This is "what we tell the boss" and is, in some sense, the most important
+feature of the regression model.
+
+```{r}
+print(crit$formula)
+#print(crit1$formula)
+```
+
+Next, the object `crit$summary` contains a full summary of the regression
+model, including the standard error, adjusted $R^2$, and p-value associated
+with the independent variable `above`.
+
+```{r}
+crit$summary
+#crit1$summary
+```
+
+We can also view 95% confidence intervals on the intercept and coefficients by
+examining `crit$confint`.
+
+```{r}
+crit$confint
+#crit1$confint
+```
+
+The adjusted $R^2$, standard error, and average $Y$ values are also saved in
+`crit`:
+
+```{r}
+crit$R2
+#crit1$R2
+```
+
+```{r}
+crit$Se
+#crit1$Se
+```
+
+```{r}
+crit$mean_Y
+crit1$mean_Y
+```
+
+The plot of residuals versus the fitted values is contained in
+`crit$residual_plot`, and the residual histogram is contained in
+`crit$residual_histogram`.
+
+```{r}
+crit$residual_plot
+#crit1$residual_plot
+```
+
+```{r}
+crit$residual_histogram
+#crit1$residual_histogram
+```
+
+### Is this a good model?
+
+Here is a summary of some key aspects of this model:
+
+- The variable `above` is significant in the regression because its
+  p-value is below 0.05.
+- The coefficient of `above` makes sense as we would expect home
+  values to increase with more above ground square footage.
+- Notice that the intercept confidence interval contains 0, which
+  would be the expected price for a home with `above = 0`. This
+  makes sense.
+- The adjusted $R^2$ value `r crit$R2` is a medium-level value.
+- The standard error value is about 30% of the average sale_price, which
+  means that the regression misses the data by about 30% on average. This
+  is fairly high.
+- The residual histogram is fairly normal, which is good.
+- The residual plot does not look like a "strip of random points." Rather
+  it has more of a cone shape.
+
+In summary, the model looks pretty good except that the standard error is a bit
+high and the residual plot doesn't have the desired shape.
+
+----
+
+## Adding Another Independent Variable
+
+To expand the model to include more independent variables, we simply expand the
+formula `sale_price ~ above` to `sale_price ~ above + walkout`.  The key is to
+use the `+` character to add new variables into the model.  In this case, we
+are adding a factor variable, `walkout`. Recall that 0 is the base case of
+`walkout`.
+
+
+```{r}
+#fit <- lm(sale_price ~ above + walkout, data = homes)
+fit_some <- lm(Growth ~ CaloriesPerMin + TimeInMin 
++ ElevationChangeInFeetPerMin + DistanceInFeetPerMin
++ Temp + DewPoint
+, data = HR_Exercise_Training, na.action=na.omit)
+```
+
+As before, we can run `aa_critique_fit(...)` to provide output that needed to
+critique the model.
+
+```{r}
+#crit <- aa_critique_fit(fit)
+crit_some <- aa_critique_fit(fit_some)
+```
+
+In this case, let us examine the formula.
+
+
+```{r}
+#print(crit$formula)
+print(crit_some$formula)
+```
+
+The term `walkout1` in this formula should be interpreted as follows: when the
+home has a walkout basement (`walkout = 1`), then the home value is adjusted by
+the specified coefficient; otherwise, if the home does not have a walkout
+basement (`walkout = 0`), then there is no adjustment to the home value.  A
+similar meaning is shown in the regression summary.
+
+```{r}
+#crit$summary
+crit_some$summary
+```
+
+----
+
+## The Full Regression
+
+To complete this example, we now add in all of the independent variables and
+critique the model:
+
+```{r}
+fit <- lm(sale_price ~ above + basement + walkout + baths + toilets + beds +
+    condition + age, data = homes)
+```
+
+```{r}
+#crit <- aa_critique_fit(fit)
+crit_some <- aa_critique_fit(fit_some)
+```
+
+```{r}
+#print(crit$formula)
+print(crit_some$formula)
+```
+
+```{r}
+#crit$summary
+crit_some$summary
+```
+
+```{r}
+crit$residual_plot
+crit_some$residual_plot
+```
+
+```{r}
+crit$residual_histogram
+crit_some$residual_histogram
+```
+
+
+A look at how large the mistakes are:
+
+```{r}
+crit_some$Se / crit_some$mean_Y
+```
+
+
+
+A few points are in order:
+
+- Notice that coefficients are given for the levels `Below_Normal`
+  and `Above_Normal` of `condition`. This is because `Normal` is the
+  base case.
+- The variables `toilets` is insignificant in this regression. It
+  could be removed in order to keep the model simpler, but we will
+  leave it in.
+- Compared to our previous regressions, we see better standard error
+  and adjusted $R^2$. However, the cone shape of the residual plot
+  still remains.
+
+Finally, we check the VIFs to verify that multicollinearity is not present and
+possibly causing problems. Recall any VIF above 5.0 is considered evidence of
+multicollinearity.
+
+```{r}
+#crit$vif
+crit_some$vif
+```
