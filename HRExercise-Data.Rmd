@@ -135,7 +135,7 @@ if (exists('problems')) {
 Create any necessary time series data objects (based on final formula below).
 
 ```{r}
-lag <- 3
+lag <- 1
 
 efficiency <- data.frame(HRExercise$Efficiency)
 efficiency_lag <- ts(data = efficiency[1:(nrow(efficiency) - lag), ], start = 1, end = nrow(HRExercise) - lag, frequency = 1)

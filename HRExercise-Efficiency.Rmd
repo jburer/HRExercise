@@ -263,16 +263,40 @@ crit$vif
 ```{r}
 #fit <- tslm(efficiency ~ efficiency_lag)
 fit <- tslm(efficiency ~ 
-+ timeinmin + timeinmin_lag
++ timeinmin #+ timeinmin_lag
 + elevationchangeinfeet + elevationchangeinfeet_lag
-+ elevationchangeinfeetpermin + elevationchangeinfeetpermin_lag
+#+ elevationchangeinfeetpermin #+ elevationchangeinfeetpermin_lag
 + distanceinfeet + distanceinfeet_lag
-+ distanceinfeetpermin + distanceinfeetpermin_lag
++ distanceinfeetpermin #+ distanceinfeetpermin_lag
 + temp + dewpoint #+ humidity
 #+ exercise
 #+ course
-+ islessthan12hourssincelastanything #+ islessthan24hourssincelastanything + islessthan36hourssincelastanything 
-+ time
+#+ islessthan12hourssincelastanything #+ islessthan24hourssincelastanything + islessthan36hourssincelastanything 
+#+ time
+)
+summary(fit)
+```
+
+```{r}
+
+fit <- tslm(efficiency ~ 
++ timeinmin 
++ distanceinfeet
+#+ distanceinfeetpermin
++ elevationchangeinfeet
++ elevationchangeinfeetpermin
++ temp + dewpoint #+ humidity
+#+ exercise
++ isbiking +iswalking #+ isrunning 
+#+ isyoga
++ course
+#+ southernsoul 
+#+ wholeenchilada + riverwalk + hawksridge + stringers + whiteoak
+#+ islessthan12hourssincelastanything + islessthan24hourssincelastanything #+ islessthan36hourssincelastanything 
+
+#+ islessthan24hourssincelastrunning #+ islessthan36hourssincelastrunning
+#+ islessthan24hourssincelastbiking #+ islessthan36hourssincelastbiking
+#+ islessthan48hourssincelastwalking #+ islessthan36hourssincelastwalking
 )
 summary(fit)
 ```
